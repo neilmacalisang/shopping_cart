@@ -3,7 +3,7 @@ class ShoppingCart
   attr_accessor :pricing_rules,:content, :promo
 
   #Class method for pricing rules array
-  def self.pricing_rules_hash
+  def self.default_pricing_rules
     pricing_rules = [
       {"Product Code" => 'ult_small', "Product Name" =>  'Unlimited 1GB', "Price" =>24.90},
       {"Product Code" => 'ult_medium', "Product Name" =>  'Unlimited 2GB', "Price" =>29.90},
@@ -28,50 +28,58 @@ class ShoppingCart
     self.promo = true if promo_code == 'I<3AMAYSIM'
     
     unless item.nil?
-      if content[item['Product Code']].nil?
-        content[item['Product Code']] = 1
+      if content[item['Product Name']].nil?
+        content[item['Product Name']] = 1
       else
-        content[item['Product Code']] += 1
+        content[item['Product Name']] += 1
       end
-      puts "Promo: #{promo}"
-      return content
+      puts "Item Added #{item['Product Name']}"
+      puts "Promo Active? #{promo}"
     else
-      puts "Promo: #{promo}"
-      return "Invalid item"
+      puts "Invalid Product Code/Name"
+      puts "Promo Active? #{promo}"
     end
   end
 
   def total
     total = 0
     pricing_rules.each do |rule|
-      unless (content[rule["Product Code"]].nil? || content[rule["Product Code"]] <= 0)
-        case rule["Product Code"]
-        when "ult_small"
-          total +=  ( (content[rule["Product Code"]] / 3) * (2 * rule['Price']) ) + ( (content[rule["Product Code"]] % 3) * rule["Price"] )
-        when "ult_large"
-          if content[rule["Product Code"]] > 3
-            total += content[rule["Product Code"]] * 39.90
+      unless (content[rule["Product Name"]].nil? || content[rule["Product Name"]] <= 0)
+        case rule["Product Name"]
+        when "Unlimited 1GB"
+          total +=  ( (content[rule["Product Name"]] / 3) * (2 * rule['Price']) ) + ( (content[rule["Product Name"]] % 3) * rule["Price"] )
+        when "Unlimited 5GB"
+          if content[rule["Product Name"]] > 3
+            total += content[rule["Product Name"]] * 39.90
           else
-            total += content[rule["Product Code"]] * rule['Price']
+            total += content[rule["Product Name"]] * rule['Price']
           end
         else
-          total += content[rule['Product Code']] * rule['Price']
+          total += content[rule['Product Name']] * rule['Price']
         end
       end
     end
     total *= 0.9 if promo
-    return "$#{'%.02f' % total}"
+    puts "Total Price: $#{'%.02f' % total}"
   end
 
   def items
-    if content['ult_medium'].nil? || content['ult_medium'] <= 0
+    if content['Unlimited 2GB'].nil? || content['Unlimited 2GB'] <= 0
+      puts "Cart Contents:"
+      content.each do |product_name,quantity|
+        puts "#{product_name} x #{quantity}"
+      end
       return content
     else
       item_hash = content.clone
-      if item_hash['1gb'].nil?
-        item_hash['1gb'] = item_hash['ult_medium']
+      puts "Cart Contents:"
+      if item_hash['1 GB Data-pack'].nil?
+        item_hash['1 GB Data-pack'] = item_hash['Unlimited 2GB']
       else
-        item_hash['1gb'] += item_hash['ult_medium']
+        item_hash['1 GB Data-pack'] += item_hash['Unlimited 2GB']
+      end
+      item_hash.each do |product_name,quantity|
+        puts "#{product_name} x #{quantity}"
       end
       return item_hash
     end
